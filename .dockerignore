@@ -1,0 +1,25 @@
+# Ignore build output (we only copy the final jar manually)
+target/*
+!target/*.jar
+
+# IDE / OS files
+.idea
+.idea/
+.vscode
+*.iml
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Logs
+*.log
+
+# Env / secrets
+.env
+.env.*
+ENV_SETUP.md
+application-*.properties
+application-*.yml
