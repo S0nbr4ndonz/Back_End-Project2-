@@ -1,10 +1,11 @@
 package com.group7.jobTrackerApplication.service;
 
+import com.group7.jobTrackerApplication.DTO.UpdateUserRoleRequest;
 import com.group7.jobTrackerApplication.model.User;
 import com.group7.jobTrackerApplication.model.Role;
 import com.group7.jobTrackerApplication.repository.UserRepository;
 import com.group7.jobTrackerApplication.exception.ResourceNotFoundException;
-import com.group7.jobTrackerApplication.exception.NotAuthorizedException;
+import com.group7.jobTrackerApplication.exception.NotAuthenticatedException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -28,9 +29,9 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
     }
 
-    public User update(Long userId, Role newRole) {
+    public User update(Long userId, UpdateUserRoleRequest request) {
         User user = getUserById(userId);
-        user.setRole(newRole);
+        user.setRole(request.role());
         return userRepository.save(user);
     }
 
@@ -42,13 +43,13 @@ public class UserService {
 
     public User getOrCreateFromOAuth(OAuth2User principal) {
         if (principal == null) {
-            throw new NotAuthorizedException("Authentication required");
+            throw new NotAuthenticatedException("Authentication required");
         }
 
         Map<String, Object> attrs = principal.getAttributes();
 
         if (attrs.get("id") == null) {
-            throw new NotAuthorizedException("Token expired or invalid");
+            throw new NotAuthenticatedException("Token expired or invalid");
         }
 
         String provider = "github";

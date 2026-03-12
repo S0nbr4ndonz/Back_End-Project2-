@@ -1,8 +1,8 @@
 package com.group7.jobTrackerApplication.controller;
 
+import com.group7.jobTrackerApplication.DTO.UpdateUserRoleRequest;
 import com.group7.jobTrackerApplication.model.User;
 import com.group7.jobTrackerApplication.service.UserService;
-import com.group7.jobTrackerApplication.DTO.UpdateUserRoleRequest;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +30,7 @@ public class UserController {
 
     @PatchMapping("/{userId}")
     public ResponseEntity<User> updateUser(@PathVariable Long userId, @Valid @RequestBody UpdateUserRoleRequest request){
-        User updated = userService.update(userId, request.getRole());
+        User updated = userService.update(userId, request);
         return ResponseEntity.ok(updated);
     }
 

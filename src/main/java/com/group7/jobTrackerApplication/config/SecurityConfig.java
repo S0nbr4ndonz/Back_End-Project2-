@@ -3,10 +3,13 @@ package com.group7.jobTrackerApplication.config;
 import com.group7.jobTrackerApplication.service.CustomOAuth2UserService;
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 
@@ -20,10 +23,10 @@ public class SecurityConfig {
     private static final String FRONTEND_SUCCESS_URL = "http://localhost:3000/oauth-success";
 
     @Bean
-    SecurityFilterChain springFilterChain(HttpSecurity http, CustomOAuth2UserService customOAuth2UserService) throws Exception {
+    SecurityFilterChain springFilterChain(HttpSecurity http, CustomOAuth2UserService customOAuth2UserService){
         http
                 // Dev-friendly. If you add POST/PUT/DELETE later, handle CSRF properly.
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
 
                 // Required so React can call the API AND include cookies
                 .cors(cors -> cors.configurationSource(request -> {
@@ -62,12 +65,30 @@ public class SecurityConfig {
                 )
 
                 // Disable form login (otherwise APIs may redirect to HTML login)
-                .formLogin(form -> form.disable())
+                .formLogin(AbstractHttpConfigurer::disable)
 
                 // API logout endpoint React can call
                 .logout(logout -> logout
                         .logoutUrl("/api/logout")
                         .logoutSuccessUrl(FRONTEND_ORIGIN + "/")
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.getWriter().write("""
+                                             {"error": "NOT AUTHENTICATED", "message" : "Authentication required"}
+                                            """
+                            );
+
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.getWriter().write("""
+                                    {"error": "FORBIDDEN", "message" : "Insufficient permissions"
+                                    """);
+                        })
                 );
 
         return http.build();

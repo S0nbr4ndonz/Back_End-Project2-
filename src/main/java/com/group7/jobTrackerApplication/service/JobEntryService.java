@@ -9,6 +9,7 @@ import com.group7.jobTrackerApplication.exception.ResourceNotFoundException;
 import com.group7.jobTrackerApplication.exception.ForbiddenException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -23,13 +24,14 @@ public class JobEntryService {
     }
 
     public List<JobEntry> getAll( User user ) {
-        return jobEntryRepository.findByUserId(user.getUserId());
+        return jobEntryRepository.findByUserId(user.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Job entries not found"));
     }
 
     public JobEntry getById(Long jobId, User user) {
         return jobEntryRepository
                 .findByJobIdAndUserId(jobId, user.getUserId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Job entry not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Job entry not found"));
     }
 
     public JobEntry create(OAuth2User principal, CreateJobEntryRequest request) {
@@ -45,34 +47,34 @@ public class JobEntryService {
         return jobEntryRepository.save(je);
     }
 
-    public JobEntry replace(Long jobId, JobEntry changeTo, User user) {
+    public JobEntry replace(Long jobId, UpdateJobEntryRequest request, User user) {
         JobEntry toChange = jobEntryRepository
                         .findByJobIdAndUserId(jobId, user.getUserId())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Job entry not found"));
+                        .orElseThrow(() -> new ForbiddenException("Not authorized to update this job entry"));
 
-        toChange.setCompanyName(changeTo.getCompanyName());
-        toChange.setJobTitle(changeTo.getJobTitle());
-        toChange.setPostingURL(changeTo.getPostingURL());
-        toChange.setSalaryText(changeTo.getSalaryText());
+        toChange.setCompanyName(request.company());
+        toChange.setJobTitle(request.jobTitle());
+        toChange.setPostingURL(request.postingUrl());
+        toChange.setSalaryText(request.salary());
 
         return jobEntryRepository.save(toChange);
     }
 
-    public JobEntry patch(Long jobId, UpdateJobEntryRequest updates, User user) {
+    public JobEntry patch(Long jobId, UpdateJobEntryRequest request, User user) {
         JobEntry toChange = jobEntryRepository.findByJobIdAndUserId(jobId, user.getUserId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Job entry not found"));
+                .orElseThrow(() -> new ForbiddenException("Not authorized to update this job entry"));
 
-        if (updates.getCompany() != null) toChange.setCompanyName(updates.getCompany());
-        if (updates.getJobName() != null) toChange.setJobTitle(updates.getJobName());
-        if (updates.getSalary() != null) toChange.setSalaryText(updates.getSalary());
-        if (updates.getPostingUrl() != null) toChange.setPostingURL(updates.getPostingUrl());
+        if (request.company() != null) toChange.setCompanyName(request.company());
+        if (request.jobTitle() != null) toChange.setJobTitle(request.jobTitle());
+        if (request.salary() != null) toChange.setSalaryText(request.salary());
+        if (request.postingUrl() != null) toChange.setPostingURL(request.postingUrl());
 
         return jobEntryRepository.save(toChange);
     }
 
     public void delete(Long jobId, User user) {
         JobEntry toDelete = jobEntryRepository.findByJobIdAndUserId(jobId, user.getUserId())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Job entry not found"));
+                        .orElseThrow(() -> new ForbiddenException("Not authorized to delete this job entry"));
 
         jobEntryRepository.deleteById(toDelete.getJobId());
     }

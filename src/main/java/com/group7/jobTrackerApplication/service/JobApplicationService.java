@@ -30,12 +30,12 @@ public class JobApplicationService {
 
     public List<JobApplication> getAll( User user) {
         return jobApplicationRepository.findByUserId(user.getUserId())
-                .orElseThrow(() -> new RuntimeException(("Job application not found")));
+                .orElseThrow(() -> new ResourceNotFoundException(("Job applications not found")));
     }
 
     public JobApplication getById(Long applicationId, User user) {
         return jobApplicationRepository.findByApplicationIdAndUserId(applicationId, user.getUserId())
-                .orElseThrow(() -> new RuntimeException("Job application not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Job application not found"));
     }
 
     public JobApplication create(CreateJobApplicationRequest jobApplication, User user) {
@@ -51,7 +51,7 @@ public class JobApplicationService {
 
     public JobApplication replace(Long applicationId, UpdateJobApplicationRequest jobApplication, User user) {
         JobApplication toChange = jobApplicationRepository.findByApplicationIdAndUserId(applicationId, user.getUserId())
-                .orElseThrow(()-> new RuntimeException("Job Application not found"));
+                .orElseThrow(()-> new ForbiddenException("Not authorized to update requested job application."));
 
         toChange.setDateApplied(jobApplication.dataApplied());
         toChange.setStatus(jobApplication.status());
@@ -62,7 +62,7 @@ public class JobApplicationService {
 
     public JobApplication patch(Long applicationId, UpdateJobApplicationRequest request, User user) {
         JobApplication toChange = jobApplicationRepository.findByApplicationIdAndUserId(applicationId, user.getUserId())
-                .orElseThrow(()-> new RuntimeException("Job Application not found"));
+                .orElseThrow(()-> new ForbiddenException("Not authorized to update requested job application."));
 
         if(request.dataApplied() != null) toChange.setDateApplied(request.dataApplied());
         if(request.status() != null) toChange.setStatus(request.status());
@@ -73,7 +73,7 @@ public class JobApplicationService {
 
     public void delete(Long applicationId, User user) {
         JobApplication toDelete = jobApplicationRepository.findByApplicationIdAndUserId(applicationId, user.getUserId())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Job application not found"));
+                        .orElseThrow(() -> new ForbiddenException("Not authorized to delete requested job application."));
 
         jobApplicationRepository.deleteById(toDelete.getApplicationId());
     }

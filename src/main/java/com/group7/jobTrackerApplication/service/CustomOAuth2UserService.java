@@ -40,7 +40,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     User u = new User();
                     u.setUsername(login);
                     u.setEmail((String) oauthUser.getAttribute("email"));
-                    u.setOauthProvider("GitHub");
+                    u.setOauthProvider("gitHub");
                     u.setRole(Role.USER);
                     return userRepository.save(u);
                 });

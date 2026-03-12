@@ -13,7 +13,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/application-notes")
+@RequestMapping("/job-applications/{applicationId}/note")
 public class ApplicationNoteController {
 
     private final ApplicationNotesService applicationNotesService;

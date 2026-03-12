@@ -14,8 +14,8 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(NotAuthorizedException.class)
-    public ResponseEntity<Map<String, String>> handleUnauthorized(NotAuthorizedException ex) {
+    @ExceptionHandler(NotAuthenticatedException.class)
+    public ResponseEntity<Map<String, String>> handleUnauthorized(NotAuthenticatedException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("error", ex.getMessage()));
     }
@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleGeneral(Exception ex) {
+    public ResponseEntity<Map<String, String>> handleGeneral() {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "An unexpected error occurred"));
     }
