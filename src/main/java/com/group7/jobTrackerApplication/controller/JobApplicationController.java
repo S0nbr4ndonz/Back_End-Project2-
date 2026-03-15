@@ -1,6 +1,7 @@
 package com.group7.jobTrackerApplication.controller;
 
 import com.group7.jobTrackerApplication.DTO.CreateJobApplicationRequest;
+import com.group7.jobTrackerApplication.DTO.GetJobApplicationRequest;
 import com.group7.jobTrackerApplication.DTO.UpdateJobApplicationRequest;
 import com.group7.jobTrackerApplication.model.JobApplication;
 import com.group7.jobTrackerApplication.service.JobApplicationService;
@@ -25,7 +26,7 @@ public class JobApplicationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<JobApplication>> getAll(@AuthenticationPrincipal OAuth2User principal){
+    public ResponseEntity<List<GetJobApplicationRequest>> getAll(@AuthenticationPrincipal OAuth2User principal){
         return ResponseEntity.ok(jobApplicationService.getAll(userService.getOrCreateFromOAuth(principal)));
     }
 

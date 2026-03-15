@@ -42,7 +42,7 @@ public class JobEntryService {
         je.setJobTitle(request.JobTitle());
         je.setSalaryText(request.SalaryText());
         je.setPostingURL(request.PostingUrl());
-        je.setUserId(user.getUserId());
+        je.getUser().setUserId(user.getUserId());
 
         return jobEntryRepository.save(je);
     }

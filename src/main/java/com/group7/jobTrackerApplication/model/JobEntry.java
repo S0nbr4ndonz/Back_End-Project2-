@@ -34,8 +34,9 @@ public class JobEntry {
     public Long getJobId() { return jobId; }
     public void setJobId(Long jobId) { this.jobId = jobId; }
 
-    public Long getUserId() { return user.getUserId(); }
-    public void setUserId( Long userId) {this.user.setUserId(user.getUserId());}
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+
 
     public String getCompanyName() { return companyName; }
     public void setCompanyName(String companyName) { this.companyName = companyName; }
@@ -48,4 +49,7 @@ public class JobEntry {
 
     public String getPostingURL() { return postingURL; }
     public void setPostingURL(String postingURL) { this.postingURL = postingURL; }
+
+    public JobApplication getJobApplication() {return jobApplication;}
+    public void setJobApplication(JobApplication jobApplication) {this.jobApplication =  jobApplication;}
 }

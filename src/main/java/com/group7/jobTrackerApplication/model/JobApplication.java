@@ -36,11 +36,12 @@ public class JobApplication {
     public Long getApplicationId() { return applicationId; }
     public void setApplicationId(Long applicationId) { this.applicationId = applicationId; }
 
-    public Long getUserId() { return user.getUserId(); }
-    public void setUserId(Long userId) { this.user.setUserId(user.getUserId()); }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
-    public Long getJobId() { return jobId; }
-    public void setJobId(Long jobId) { this.jobId = jobId; }
+
+    public JobEntry getJobEntry() { return jobEntry; }
+    public void setJobEntry(JobEntry jobEntry) { this.jobEntry = jobEntry; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }

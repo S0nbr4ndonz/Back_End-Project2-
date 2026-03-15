@@ -1,6 +1,7 @@
 package com.group7.jobTrackerApplication.service;
 
 import com.group7.jobTrackerApplication.DTO.CreateJobApplicationRequest;
+import com.group7.jobTrackerApplication.DTO.GetJobApplicationRequest;
 import com.group7.jobTrackerApplication.DTO.UpdateJobApplicationRequest;
 import com.group7.jobTrackerApplication.model.JobApplication;
 import com.group7.jobTrackerApplication.model.User;
@@ -28,9 +29,16 @@ public class JobApplicationService {
         this.userService = userService;
     }
 
-    public List<JobApplication> getAll( User user) {
-        return jobApplicationRepository.findByUserId(user.getUserId())
+    public List<GetJobApplicationRequest> getAll(User user) {
+        List<JobApplication> applications = jobApplicationRepository.findALlByUser_UserId(user.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException(("Job applications not found")));
+
+        return applications.stream()
+                .map( app -> new GetJobApplicationRequest(
+                        app.getApplicationId(),
+                        app.getJobEntry().getJobId(),
+                        app.getJobEntry().getJobTitle()
+                )).toList();
     }
 
     public JobApplication getById(Long applicationId, User user) {
@@ -43,8 +51,8 @@ public class JobApplicationService {
         JobApplication jp = new JobApplication();
         jp.setDateApplied(jobApplication.dateApplied());
         jp.setStatus(jobApplication.status());
-        jp.setUserId(user.getUserId());
-        jp.setJobId(jobApplication.jobId());
+        jp.getUser().setUserId(user.getUserId());
+        jp.getJobEntry().setJobId(jobApplication.jobId());
 
         return jobApplicationRepository.save(jp);
     }
