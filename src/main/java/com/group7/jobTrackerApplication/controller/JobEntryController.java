@@ -1,6 +1,7 @@
 package com.group7.jobTrackerApplication.controller;
 
 import com.group7.jobTrackerApplication.DTO.CreateJobEntryRequest;
+import com.group7.jobTrackerApplication.DTO.GetJobEntryRequest;
 import com.group7.jobTrackerApplication.DTO.UpdateJobEntryRequest;
 import com.group7.jobTrackerApplication.model.JobEntry;
 import com.group7.jobTrackerApplication.model.User;
@@ -32,12 +33,12 @@ public class JobEntryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<JobEntry>> getAll(@AuthenticationPrincipal OAuth2User principal){
+    public ResponseEntity<List<GetJobEntryRequest>> getAll(@AuthenticationPrincipal OAuth2User principal){
         return ResponseEntity.ok(jobEntryService.getAll(userService.getOrCreateFromOAuth(principal)));
     }
 
     @GetMapping("/{jobId}")
-    public ResponseEntity<JobEntry> getById(@PathVariable Long jobId, @AuthenticationPrincipal OAuth2User principal){
+    public ResponseEntity<GetJobEntryRequest> getById(@PathVariable Long jobId, @AuthenticationPrincipal OAuth2User principal){
         User user = userService.getOrCreateFromOAuth(principal);
         return ResponseEntity.ok(jobEntryService.getById(jobId, user));
     }
@@ -51,13 +52,13 @@ public class JobEntryController {
     @PutMapping("/{jobId}")
     public ResponseEntity<JobEntry> replace(@PathVariable Long jobId, @RequestBody UpdateJobEntryRequest request, @AuthenticationPrincipal OAuth2User principal ){
         JobEntry updated = jobEntryService.replace(jobId, request, userService.getOrCreateFromOAuth(principal));
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{jobId}")
     public ResponseEntity<JobEntry> patch(@PathVariable Long jobId, @RequestBody UpdateJobEntryRequest request, @AuthenticationPrincipal OAuth2User principal){
         JobEntry patched = jobEntryService.patch(jobId, request, userService.getOrCreateFromOAuth(principal));
-        return ResponseEntity.ok(patched);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{jobId}")

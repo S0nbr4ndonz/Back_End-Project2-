@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface JobApplicationRepository extends JpaRepository<JobApplication, Long> {
 
-    Optional<List<JobApplication>> findALlByUser_UserId(Long userUserId);
+    Optional<List<JobApplication>> findAllByUser_UserId(Long userUserId);
 
-    Optional<JobApplication> findByApplicationIdAndUserId(Long applicationId, Long userId );
+    Optional<JobApplication> findByApplicationIdAndUser_UserId(Long applicationId, Long userId );
 }

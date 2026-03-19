@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface JobEntryRepository extends JpaRepository<JobEntry, Long> {
 
-    Optional<List<JobEntry>> findByUserId(Long userId);
+    Optional<List<JobEntry>> findByUser_UserId(Long userId);
 
-    Optional<JobEntry> findByJobIdAndUserId(Long jobId, Long userId);
+    Optional<JobEntry> findByJobIdAndUser_UserId(Long jobId, Long userId);
 }

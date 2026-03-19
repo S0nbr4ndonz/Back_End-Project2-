@@ -1,16 +1,5 @@
--- =========================
--- Clean existing data
--- =========================
-DELETE FROM application_notes;
-DELETE FROM job_applications;
-DELETE FROM job_entries;
-DELETE FROM users;
-
--- Reset sequences
-ALTER SEQUENCE application_notes_notes_id_seq RESTART WITH 1;
-ALTER SEQUENCE job_applications_application_id_seq RESTART WITH 1;
-ALTER SEQUENCE job_entries_job_id_seq RESTART WITH 1;
-ALTER SEQUENCE users_user_id_seq RESTART WITH 1;
+TRUNCATE TABLE application_notes, job_applications, job_entries, users
+RESTART IDENTITY CASCADE;
 
 -- =========================
 -- 1) USERS

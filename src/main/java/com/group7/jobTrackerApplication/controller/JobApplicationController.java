@@ -31,7 +31,7 @@ public class JobApplicationController {
     }
 
     @GetMapping("/{applicationId}")
-    public ResponseEntity<JobApplication> getById(@PathVariable Long applicationId, @AuthenticationPrincipal OAuth2User principal){
+    public ResponseEntity<GetJobApplicationRequest> getById(@PathVariable Long applicationId, @AuthenticationPrincipal OAuth2User principal){
         return ResponseEntity.ok(jobApplicationService.getById(applicationId, userService.getOrCreateFromOAuth(principal)));
     }
 
@@ -44,13 +44,13 @@ public class JobApplicationController {
     @PutMapping("/{applicationId}")
     public ResponseEntity<JobApplication> replace(@PathVariable Long applicationId, @RequestBody UpdateJobApplicationRequest jobApplication, @AuthenticationPrincipal OAuth2User principal ){
         JobApplication updated = jobApplicationService.replace(applicationId, jobApplication, userService.getOrCreateFromOAuth(principal));
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{applicationId}")
     public ResponseEntity<JobApplication> patch(@PathVariable Long applicationId, @RequestBody UpdateJobApplicationRequest request, @AuthenticationPrincipal OAuth2User principal){
         JobApplication patched = jobApplicationService.patch(applicationId, request, userService.getOrCreateFromOAuth(principal));
-        return ResponseEntity.ok(patched);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{applicationId}")

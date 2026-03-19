@@ -1,4 +1,6 @@
 package com.group7.jobTrackerApplication.DTO;
 
-public record GetJobApplicationRequest(Long applicationId, Long jobId, String jobTitle) {
+import java.time.LocalDate;
+
+public record GetJobApplicationRequest(Long applicationId, Long jobId, String jobTitle, String status, LocalDate dateApplied) {
 }

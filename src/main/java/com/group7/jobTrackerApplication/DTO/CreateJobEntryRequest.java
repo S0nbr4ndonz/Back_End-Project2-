@@ -1,8 +1,8 @@
 package com.group7.jobTrackerApplication.DTO;
 
 public record CreateJobEntryRequest(
-        String CompanyName,
-        String SalaryText,
-        String PostingUrl,
-        String JobTitle
+        String companyName,
+        String salaryText,
+        String postingURL,
+        String jobTitle
 ) {}

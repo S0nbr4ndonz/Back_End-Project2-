@@ -16,9 +16,6 @@ public class JobApplication {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "job_id")
-    private Long jobId;
-
     @Column(name = "status")
     private String status;
 

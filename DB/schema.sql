@@ -6,6 +6,7 @@ CREATE TABLE users (
     username VARCHAR(50) NOT NULL UNIQUE,
     role VARCHAR(20),
     oauth_provider VARCHAR(20),
+    oauth_subject VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(50) NOT NULL UNIQUE
 );
 
