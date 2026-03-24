@@ -30,14 +30,14 @@ public class ApplicationNoteController {
     }
 
     @PostMapping
-    public ResponseEntity<ApplicationNote> create(@AuthenticationPrincipal OAuth2User principal, @RequestBody CreateApplicationNoteRequest request){
-        ApplicationNote created = applicationNotesService.create(request, userService.getOrCreateFromOAuth(principal));
+    public ResponseEntity<ApplicationNote> create(@AuthenticationPrincipal OAuth2User principal, @PathVariable Long applicationId,@RequestBody CreateApplicationNoteRequest request){
+        ApplicationNote created = applicationNotesService.create(request, applicationId, userService.getOrCreateFromOAuth(principal));
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PatchMapping("/{noteId}")
-    public ResponseEntity<ApplicationNote> patch(@PathVariable Long noteId, @Valid @RequestBody UpdateApplicationNoteRequest request, @AuthenticationPrincipal OAuth2User principal){
-        ApplicationNote updated = applicationNotesService.patch(noteId, request , userService.getOrCreateFromOAuth(principal));
+    public ResponseEntity<ApplicationNote> patch(@PathVariable Long applicationId, @PathVariable Long noteId, @Valid @RequestBody UpdateApplicationNoteRequest request, @AuthenticationPrincipal OAuth2User principal){
+        ApplicationNote updated = applicationNotesService.patch(applicationId, noteId, request , userService.getOrCreateFromOAuth(principal));
         return ResponseEntity.ok(updated);
     }
 
