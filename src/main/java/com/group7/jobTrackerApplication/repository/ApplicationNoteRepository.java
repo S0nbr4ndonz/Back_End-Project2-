@@ -13,5 +13,7 @@ public interface ApplicationNoteRepository extends JpaRepository<ApplicationNote
 
     Optional<ApplicationNote> findByNotesIdAndApplication_ApplicationIdAndApplication_User_UserId(Long notesId, Long applicationId, Long userId);
 
-    List<ApplicationNote> findByApplication_User_UserId(Long userId);
+    List<ApplicationNote> findAllByApplication_User_UserId(Long userId);
+
+    Optional<ApplicationNote> findByApplication_ApplicationIdAndApplication_User_UserId(Long applicationId, Long userId);
 }

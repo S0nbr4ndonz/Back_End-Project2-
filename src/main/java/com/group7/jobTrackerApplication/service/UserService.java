@@ -6,8 +6,10 @@ import com.group7.jobTrackerApplication.model.Role;
 import com.group7.jobTrackerApplication.repository.UserRepository;
 import com.group7.jobTrackerApplication.exception.ResourceNotFoundException;
 import com.group7.jobTrackerApplication.exception.NotAuthenticatedException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.Map;
 
@@ -15,9 +17,14 @@ import java.util.Map;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final String adminGithubLogin;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(
+            UserRepository userRepository,
+            @Value("${app.admin.github-login:}") String adminGithubLogin
+    ) {
         this.userRepository = userRepository;
+        this.adminGithubLogin = adminGithubLogin;
     }
 
     public List<User> getAllUsers() {
@@ -59,14 +66,29 @@ public class UserService {
 
         return userRepository
                 .findByOauthProviderAndOauthSubject(provider, subject)
+                .map(existingUser -> {
+                    Role desiredRole = resolveRole(username);
+                    if (existingUser.getRole() != desiredRole) {
+                        existingUser.setRole(desiredRole);
+                        return userRepository.save(existingUser);
+                    }
+                    return existingUser;
+                })
                 .orElseGet(() -> {
                     User u = new User();
                     u.setOauthProvider(provider);
                     u.setOauthSubject(subject);
                     u.setUsername(username);
                     u.setEmail(email);
-                    u.setRole(Role.USER);
+                    u.setRole(resolveRole(username));
                     return userRepository.save(u);
                 });
+    }
+
+    private Role resolveRole(String githubLogin) {
+        if (StringUtils.hasText(adminGithubLogin) && adminGithubLogin.equalsIgnoreCase(githubLogin)) {
+            return Role.ADMIN;
+        }
+        return Role.USER;
     }
 }

@@ -3,6 +3,7 @@ package com.group7.jobTrackerApplication.service;
 import com.group7.jobTrackerApplication.model.Role;
 import com.group7.jobTrackerApplication.model.User;
 import com.group7.jobTrackerApplication.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -12,18 +13,23 @@ import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final String adminGithubLogin;
 
-    public CustomOAuth2UserService(UserRepository userRepository){
+    public CustomOAuth2UserService(
+            UserRepository userRepository,
+            @Value("${app.admin.github-login:}") String adminGithubLogin
+    ){
         this.userRepository = userRepository;
+        this.adminGithubLogin = adminGithubLogin;
     }
 
     @Override
@@ -43,13 +49,21 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String oauthSubject = githubId.toString();
 
         User user = userRepository.findByOauthProviderAndOauthSubject("github", oauthSubject)
+                .map(existingUser -> {
+                    Role desiredRole = resolveRole(login);
+                    if (existingUser.getRole() != desiredRole) {
+                        existingUser.setRole(desiredRole);
+                        return userRepository.save(existingUser);
+                    }
+                    return existingUser;
+                })
                 .orElseGet(() -> {
                     User u = new User();
                     u.setUsername(login);
                     u.setEmail((String) oauthUser.getAttribute("email"));
                     u.setOauthProvider("github");
                     u.setOauthSubject(oauthSubject);
-                    u.setRole(Role.USER);
+                    u.setRole(resolveRole(login));
                     return userRepository.save(u);
                 });
 
@@ -57,5 +71,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
 
         return new DefaultOAuth2User(authorities, oauthUser.getAttributes(), "login");
+    }
+
+    private Role resolveRole(String githubLogin) {
+        if (StringUtils.hasText(adminGithubLogin) && adminGithubLogin.equalsIgnoreCase(githubLogin)) {
+            return Role.ADMIN;
+        }
+        return Role.USER;
     }
 }

@@ -1,6 +1,7 @@
 package com.group7.jobTrackerApplication.controller;
 
 import com.group7.jobTrackerApplication.DTO.CreateApplicationNoteRequest;
+import com.group7.jobTrackerApplication.DTO.GetApplicationNoteSummary;
 import com.group7.jobTrackerApplication.DTO.UpdateApplicationNoteRequest;
 import com.group7.jobTrackerApplication.model.ApplicationNote;
 import com.group7.jobTrackerApplication.service.ApplicationNotesService;
@@ -25,25 +26,41 @@ public class ApplicationNoteController {
     }
 
     @GetMapping("/{noteId}")
-    public ResponseEntity<ApplicationNote> getNoteById(@AuthenticationPrincipal OAuth2User principal,  @PathVariable Long noteId, @PathVariable Long applicationId){
-        return ResponseEntity.ok(applicationNotesService.getNoteById(noteId, applicationId, userService.getOrCreateFromOAuth(principal) ));
+    public ResponseEntity<GetApplicationNoteSummary> getNoteById(@AuthenticationPrincipal OAuth2User principal,  @PathVariable Long noteId, @PathVariable Long applicationId){
+        ApplicationNote note = applicationNotesService.getNoteById(noteId, applicationId, userService.getOrCreateFromOAuth(principal));
+        return ResponseEntity.ok(toNoteSummary(note));
     }
 
     @PostMapping
-    public ResponseEntity<ApplicationNote> create(@AuthenticationPrincipal OAuth2User principal, @PathVariable Long applicationId,@RequestBody CreateApplicationNoteRequest request){
-        ApplicationNote created = applicationNotesService.create(request, applicationId, userService.getOrCreateFromOAuth(principal));
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<GetApplicationNoteSummary> create(
+            @AuthenticationPrincipal OAuth2User principal,
+            @RequestBody CreateApplicationNoteRequest request
+    ){
+        ApplicationNote created = applicationNotesService.create(request.jobApplication().getApplicationId(), request, userService.getOrCreateFromOAuth(principal));
+        return ResponseEntity.status(HttpStatus.CREATED).body(toNoteSummary(created));
     }
 
     @PatchMapping("/{noteId}")
-    public ResponseEntity<ApplicationNote> patch(@PathVariable Long applicationId, @PathVariable Long noteId, @Valid @RequestBody UpdateApplicationNoteRequest request, @AuthenticationPrincipal OAuth2User principal){
-        ApplicationNote updated = applicationNotesService.patch(applicationId, noteId, request , userService.getOrCreateFromOAuth(principal));
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<GetApplicationNoteSummary> patch(@PathVariable Long noteId, @Valid @RequestBody UpdateApplicationNoteRequest request, @AuthenticationPrincipal OAuth2User principal){
+        ApplicationNote updated = applicationNotesService.patch(noteId, request , userService.getOrCreateFromOAuth(principal));
+        return ResponseEntity.ok(toNoteSummary(updated));
     }
 
     @DeleteMapping("/{noteId}")
     public ResponseEntity<ApplicationNote> delete(@PathVariable Long noteId, @PathVariable Long applicationId,  @AuthenticationPrincipal OAuth2User principal){
         applicationNotesService.delete(noteId, applicationId,  userService.getOrCreateFromOAuth(principal));
         return ResponseEntity.noContent().build();
+    }
+
+    private GetApplicationNoteSummary toNoteSummary(ApplicationNote note) {
+        return new GetApplicationNoteSummary(
+                note.getNotesId(),
+                note.getApplicationId(),
+                note.getApplication().getJobEntry().getJobTitle(),
+                note.getApplication().getJobEntry().getCompanyName(),
+                note.getApplication().getStatus(),
+                note.getLastEdited(),
+                note.getContent()
+        );
     }
 }

@@ -41,7 +41,8 @@ public class JobApplicationService {
                         app.getJobEntry().getJobId(),
                         app.getJobEntry().getJobTitle(),
                         app.getStatus(),
-                        app.getDateApplied()
+                        app.getDateApplied(),
+                        app.getNote() == null ? null : app.getNote().getNotesId()
                 )).toList();
     }
 
@@ -54,7 +55,8 @@ public class JobApplicationService {
                 application.getJobEntry().getJobId(),
                 application.getJobEntry().getJobTitle(),
                 application.getStatus(),
-                application.getDateApplied()
+                application.getDateApplied(),
+                application.getNote() == null ? null : application.getNote().getNotesId()
         ) ;
     }
 
