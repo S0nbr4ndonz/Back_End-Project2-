@@ -22,9 +22,6 @@ public class ApplicationNote {
     @JoinColumn(name = "application_id", nullable = false, unique = true)
     private JobApplication application;
 
-    public JobApplication getApplication() {
-        return application;
-    }
 
     public Long getNotesId() { return notesId; }
     public void setNotesId(Long notesId) { this.notesId = notesId; }

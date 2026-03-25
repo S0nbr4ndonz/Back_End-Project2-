@@ -42,7 +42,7 @@ public class ApplicationNoteController {
 
     @PatchMapping("/{noteId}")
     public ResponseEntity<GetApplicationNoteSummary> patch(@PathVariable Long noteId, @Valid @RequestBody UpdateApplicationNoteRequest request, @AuthenticationPrincipal OAuth2User principal){
-        ApplicationNote updated = applicationNotesService.patch(noteId, request , userService.getOrCreateFromOAuth(principal));
+        ApplicationNote updated = applicationNotesService.patch( request.application().getApplicationId(), noteId, request , userService.getOrCreateFromOAuth(principal));
         return ResponseEntity.ok(toNoteSummary(updated));
     }
 
