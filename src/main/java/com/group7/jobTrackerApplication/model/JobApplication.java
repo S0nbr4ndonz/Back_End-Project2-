@@ -45,4 +45,7 @@ public class JobApplication {
 
     public LocalDate getDateApplied() { return dateApplied; }
     public void setDateApplied(LocalDate dateApplied) { this.dateApplied = dateApplied; }
+
+    public ApplicationNote getNote() { return note; }
+    public void setNote(ApplicationNote note) { this.note = note; }
 }

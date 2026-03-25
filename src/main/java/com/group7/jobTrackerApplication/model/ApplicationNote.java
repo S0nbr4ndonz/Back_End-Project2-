@@ -27,7 +27,15 @@ public class ApplicationNote {
     public void setNotesId(Long notesId) { this.notesId = notesId; }
 
     public Long getApplicationId() { return application.getApplicationId(); }
-    public void setApplicationId() { this.application.setApplicationId(application.getApplicationId()); }
+    public void setApplicationId() {
+        // Legacy helper; prefer setting the full relationship via setApplication(...)
+        if (this.application != null) {
+            this.application.setApplicationId(application.getApplicationId());
+        }
+    }
+
+    public void setApplication(JobApplication application) { this.application = application; }
+    public JobApplication getApplication() { return application; }
 
 
     public String getContent() { return content; }

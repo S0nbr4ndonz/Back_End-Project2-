@@ -31,8 +31,8 @@ public class SecurityConfig {
                 // Required so React can call the API AND include cookies
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration cfg = new CorsConfiguration();
-                    cfg.setAllowedOrigins(List.of("http://localhost:3000"));
-                    cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    cfg.setAllowedOrigins(List.of(FRONTEND_ORIGIN));
+                    cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                     cfg.setAllowedHeaders(List.of("*"));
                     cfg.setAllowCredentials(true);
                     return cfg;
@@ -84,7 +84,7 @@ public class SecurityConfig {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                             response.getWriter().write("""
-                                    {"error": "FORBIDDEN", "message" : "Insufficient permissions"
+                                    {"error": "FORBIDDEN", "message" : "Insufficient permissions"}
                                     """);
                         })
                 );
