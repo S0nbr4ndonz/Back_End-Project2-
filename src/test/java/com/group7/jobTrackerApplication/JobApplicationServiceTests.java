@@ -1,18 +1,20 @@
 package com.group7.jobTrackerApplication;
 
 import com.group7.jobTrackerApplication.DTO.CreateJobApplicationRequest;
+import com.group7.jobTrackerApplication.DTO.GetJobApplicationRequest;
 import com.group7.jobTrackerApplication.DTO.UpdateJobApplicationRequest;
 import com.group7.jobTrackerApplication.exception.ForbiddenException;
 import com.group7.jobTrackerApplication.exception.ResourceNotFoundException;
+import com.group7.jobTrackerApplication.model.ApplicationNote;
 import com.group7.jobTrackerApplication.model.JobApplication;
+import com.group7.jobTrackerApplication.model.JobEntry;
 import com.group7.jobTrackerApplication.model.User;
 import com.group7.jobTrackerApplication.repository.JobApplicationRepository;
+import com.group7.jobTrackerApplication.repository.JobEntryRepository;
 import com.group7.jobTrackerApplication.service.JobApplicationService;
-import com.group7.jobTrackerApplication.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,197 +22,262 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class JobApplicationServiceTests {
 
-    @Mock private JobApplicationRepository jobApplicationRepository;
-    @Mock private UserService userService; // exists in constructor but not used in your methods right now
+    @Mock
+    private JobApplicationRepository jobApplicationRepository;
+
+    @Mock
+    private JobEntryRepository jobEntryRepository;
 
     private JobApplicationService jobApplicationService;
 
     @BeforeEach
     void setUp() {
-        jobApplicationService = new JobApplicationService(jobApplicationRepository, userService);
+        jobApplicationService = new JobApplicationService(jobApplicationRepository, jobEntryRepository);
     }
 
-    // getAll(User) -> can throw -> 2 tests
     @Test
-    void getAll_whenFound_returnsApplications() {
+    void getAll_whenFound_returnsApplicationDtos() {
         User user = new User();
         user.setUserId(1L);
 
-        List<JobApplication> expected = List.of(new JobApplication());
-        when(jobApplicationRepository.findByUserId(1L)).thenReturn(Optional.of(expected));
+        JobEntry jobEntry = new JobEntry();
+        jobEntry.setJobId(11L);
+        jobEntry.setJobTitle("Backend Engineer");
 
-        List<JobApplication> result = jobApplicationService.getAll(user);
+        ApplicationNote note = new ApplicationNote();
+        note.setNotesId(55L);
 
-        assertSame(expected, result);
-        verify(jobApplicationRepository).findByUserId(1L);
-        verifyNoMoreInteractions(jobApplicationRepository, userService);
+        JobApplication application = new JobApplication();
+        application.setApplicationId(99L);
+        application.setJobEntry(jobEntry);
+        application.setStatus("APPLIED");
+        application.setDateApplied(LocalDate.of(2026, 3, 1));
+        application.setNote(note);
+
+        when(jobApplicationRepository.findAllByUser_UserId(1L)).thenReturn(Optional.of(List.of(application)));
+
+        List<GetJobApplicationRequest> result = jobApplicationService.getAll(user);
+
+        assertEquals(1, result.size());
+        assertEquals(99L, result.get(0).applicationId());
+        assertEquals(11L, result.get(0).jobId());
+        assertEquals("Backend Engineer", result.get(0).jobTitle());
+        assertEquals(55L, result.get(0).notesId());
+        verify(jobApplicationRepository).findAllByUser_UserId(1L);
+        verifyNoMoreInteractions(jobApplicationRepository, jobEntryRepository);
     }
 
     @Test
     void getAll_whenMissing_throwsResourceNotFoundException() {
         User user = new User();
         user.setUserId(1L);
-
-        when(jobApplicationRepository.findByUserId(1L)).thenReturn(Optional.empty());
+        when(jobApplicationRepository.findAllByUser_UserId(1L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> jobApplicationService.getAll(user));
 
-        verify(jobApplicationRepository).findByUserId(1L);
-        verifyNoMoreInteractions(jobApplicationRepository, userService);
+        verify(jobApplicationRepository).findAllByUser_UserId(1L);
+        verifyNoMoreInteractions(jobApplicationRepository, jobEntryRepository);
     }
 
-    // getById(Long, User) -> can throw -> 2 tests
     @Test
-    void getById_whenFound_returnsApplication() {
+    void getById_whenFound_returnsApplicationDto() {
         User user = new User();
         user.setUserId(2L);
 
+        JobEntry jobEntry = new JobEntry();
+        jobEntry.setJobId(10L);
+        jobEntry.setJobTitle("SWE Intern");
+
         JobApplication app = new JobApplication();
-        when(jobApplicationRepository.findByApplicationIdAndUserId(10L, 2L)).thenReturn(Optional.of(app));
+        app.setApplicationId(77L);
+        app.setJobEntry(jobEntry);
+        app.setStatus("INTERVIEW");
+        app.setDateApplied(LocalDate.of(2026, 2, 4));
 
-        JobApplication result = jobApplicationService.getById(10L, user);
+        when(jobApplicationRepository.findByApplicationIdAndUser_UserId(77L, 2L)).thenReturn(Optional.of(app));
 
-        assertSame(app, result);
-        verify(jobApplicationRepository).findByApplicationIdAndUserId(10L, 2L);
-        verifyNoMoreInteractions(jobApplicationRepository, userService);
+        GetJobApplicationRequest result = jobApplicationService.getById(77L, user);
+
+        assertEquals(77L, result.applicationId());
+        assertEquals("SWE Intern", result.jobTitle());
+        assertEquals("INTERVIEW", result.status());
+        verify(jobApplicationRepository).findByApplicationIdAndUser_UserId(77L, 2L);
+        verifyNoMoreInteractions(jobApplicationRepository, jobEntryRepository);
     }
 
     @Test
     void getById_whenMissing_throwsResourceNotFoundException() {
         User user = new User();
         user.setUserId(2L);
-
-        when(jobApplicationRepository.findByApplicationIdAndUserId(10L, 2L)).thenReturn(Optional.empty());
+        when(jobApplicationRepository.findByApplicationIdAndUser_UserId(10L, 2L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> jobApplicationService.getById(10L, user));
 
-        verify(jobApplicationRepository).findByApplicationIdAndUserId(10L, 2L);
-        verifyNoMoreInteractions(jobApplicationRepository, userService);
+        verify(jobApplicationRepository).findByApplicationIdAndUser_UserId(10L, 2L);
+        verifyNoMoreInteractions(jobApplicationRepository, jobEntryRepository);
     }
 
-    // create(CreateJobApplicationRequest, User) -> no exception -> 1 test
     @Test
-    void create_savesNewApplication() {
+    void create_whenOwnedJobEntryExists_savesNewApplication() {
         User user = new User();
         user.setUserId(3L);
 
-        CreateJobApplicationRequest request = mock(CreateJobApplicationRequest.class);
-        LocalDate date = LocalDate.of(2026, 1, 1);
-        when(request.dateApplied()).thenReturn(date);
-        when(request.status()).thenReturn("Applied");
-        when(request.jobId()).thenReturn(99L);
+        JobEntry jobEntry = new JobEntry();
+        jobEntry.setJobId(99L);
+        when(jobEntryRepository.findByJobIdAndUser_UserId(99L, 3L)).thenReturn(Optional.of(jobEntry));
+        when(jobApplicationRepository.save(any(JobApplication.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        JobApplication saved = new JobApplication();
-        when(jobApplicationRepository.save(any(JobApplication.class))).thenReturn(saved);
+        JobApplication result = jobApplicationService.create(
+                new CreateJobApplicationRequest(99L, "Applied", LocalDate.of(2026, 1, 1)),
+                user
+        );
 
-        JobApplication result = jobApplicationService.create(request, user);
-
-        assertSame(saved, result);
-
-        ArgumentCaptor<JobApplication> captor = ArgumentCaptor.forClass(JobApplication.class);
-        verify(jobApplicationRepository).save(captor.capture());
-
-        JobApplication toSave = captor.getValue();
-        assertEquals(date, toSave.getDateApplied());
-        assertEquals("Applied", toSave.getStatus());
-        assertEquals(3L, toSave.getUserId());
-        assertEquals(99L, toSave.getJobId());
-
-        verifyNoMoreInteractions(jobApplicationRepository, userService);
+        assertEquals("Applied", result.getStatus());
+        assertEquals(LocalDate.of(2026, 1, 1), result.getDateApplied());
+        assertEquals(jobEntry, result.getJobEntry());
+        assertEquals(user, result.getUser());
+        verify(jobEntryRepository).findByJobIdAndUser_UserId(99L, 3L);
+        verify(jobApplicationRepository).save(any(JobApplication.class));
+        verifyNoMoreInteractions(jobApplicationRepository, jobEntryRepository);
     }
 
-    // replace(Long, UpdateJobApplicationRequest, User) -> can throw ForbiddenException -> 2 tests
+    @Test
+    void create_whenOwnedJobEntryMissing_throwsResourceNotFoundException() {
+        User user = new User();
+        user.setUserId(3L);
+        when(jobEntryRepository.findByJobIdAndUser_UserId(99L, 3L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> jobApplicationService.create(new CreateJobApplicationRequest(99L, "Applied", LocalDate.now()), user));
+
+        verify(jobEntryRepository).findByJobIdAndUser_UserId(99L, 3L);
+        verifyNoMoreInteractions(jobApplicationRepository, jobEntryRepository);
+    }
+
     @Test
     void replace_whenOwned_updatesAndSaves() {
         User user = new User();
         user.setUserId(4L);
 
         JobApplication existing = new JobApplication();
-        when(jobApplicationRepository.findByApplicationIdAndUserId(20L, 4L)).thenReturn(Optional.of(existing));
-        when(jobApplicationRepository.save(any(JobApplication.class))).thenAnswer(inv -> inv.getArgument(0));
+        JobEntry replacementEntry = new JobEntry();
+        replacementEntry.setJobId(123L);
 
-        UpdateJobApplicationRequest request = mock(UpdateJobApplicationRequest.class);
-        LocalDate date = LocalDate.of(2026, 2, 2);
-        when(request.dataApplied()).thenReturn(date);
-        when(request.status()).thenReturn("Interview");
-        when(request.jobId()).thenReturn(123L);
+        when(jobApplicationRepository.findByApplicationIdAndUser_UserId(20L, 4L)).thenReturn(Optional.of(existing));
+        when(jobEntryRepository.findByJobIdAndUser_UserId(123L, 4L)).thenReturn(Optional.of(replacementEntry));
+        when(jobApplicationRepository.save(existing)).thenReturn(existing);
 
-        JobApplication result = jobApplicationService.replace(20L, request, user);
+        JobApplication result = jobApplicationService.replace(
+                20L,
+                new UpdateJobApplicationRequest(123L, "Interview", LocalDate.of(2026, 2, 2)),
+                user
+        );
 
-        assertEquals(date, result.getDateApplied());
+        assertEquals(LocalDate.of(2026, 2, 2), result.getDateApplied());
         assertEquals("Interview", result.getStatus());
-        assertEquals(123L, result.getJobId());
-
-        verify(jobApplicationRepository).findByApplicationIdAndUserId(20L, 4L);
+        assertEquals(123L, result.getJobEntry().getJobId());
+        verify(jobApplicationRepository).findByApplicationIdAndUser_UserId(20L, 4L);
+        verify(jobEntryRepository).findByJobIdAndUser_UserId(123L, 4L);
         verify(jobApplicationRepository).save(existing);
-        verifyNoMoreInteractions(jobApplicationRepository, userService);
+        verifyNoMoreInteractions(jobApplicationRepository, jobEntryRepository);
     }
 
     @Test
     void replace_whenNotOwned_throwsForbiddenException() {
         User user = new User();
         user.setUserId(4L);
+        when(jobApplicationRepository.findByApplicationIdAndUser_UserId(20L, 4L)).thenReturn(Optional.empty());
 
-        UpdateJobApplicationRequest request = mock(UpdateJobApplicationRequest.class);
-        when(jobApplicationRepository.findByApplicationIdAndUserId(20L, 4L)).thenReturn(Optional.empty());
+        assertThrows(ForbiddenException.class,
+                () -> jobApplicationService.replace(20L, new UpdateJobApplicationRequest(123L, "Interview", LocalDate.now()), user));
 
-        assertThrows(ForbiddenException.class, () -> jobApplicationService.replace(20L, request, user));
-
-        verify(jobApplicationRepository).findByApplicationIdAndUserId(20L, 4L);
-        verifyNoMoreInteractions(jobApplicationRepository, userService);
+        verify(jobApplicationRepository).findByApplicationIdAndUser_UserId(20L, 4L);
+        verifyNoMoreInteractions(jobApplicationRepository, jobEntryRepository);
     }
 
-    // patch(Long, UpdateJobApplicationRequest, User) -> can throw ForbiddenException -> 2 tests
     @Test
     void patch_whenOwned_updatesOnlyNonNullFields() {
         User user = new User();
         user.setUserId(5L);
 
+        JobEntry originalEntry = new JobEntry();
+        originalEntry.setJobId(1L);
+
         JobApplication existing = new JobApplication();
         existing.setStatus("Applied");
-        existing.setJobId(1L);
         existing.setDateApplied(LocalDate.of(2026, 1, 1));
+        existing.setJobEntry(originalEntry);
 
-        when(jobApplicationRepository.findByApplicationIdAndUserId(30L, 5L)).thenReturn(Optional.of(existing));
-        when(jobApplicationRepository.save(any(JobApplication.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(jobApplicationRepository.findByApplicationIdAndUser_UserId(30L, 5L)).thenReturn(Optional.of(existing));
+        when(jobApplicationRepository.save(existing)).thenReturn(existing);
 
-        UpdateJobApplicationRequest request = mock(UpdateJobApplicationRequest.class);
-        when(request.dataApplied()).thenReturn(null);
-        when(request.status()).thenReturn("Offer");
-        when(request.jobId()).thenReturn(null);
-
-        JobApplication result = jobApplicationService.patch(30L, request, user);
+        JobApplication result = jobApplicationService.patch(
+                30L,
+                new UpdateJobApplicationRequest(null, "Offer", null),
+                user
+        );
 
         assertEquals(LocalDate.of(2026, 1, 1), result.getDateApplied());
         assertEquals("Offer", result.getStatus());
-        assertEquals(1L, result.getJobId());
-
-        verify(jobApplicationRepository).findByApplicationIdAndUserId(30L, 5L);
+        assertEquals(1L, result.getJobEntry().getJobId());
+        verify(jobApplicationRepository).findByApplicationIdAndUser_UserId(30L, 5L);
         verify(jobApplicationRepository).save(existing);
-        verifyNoMoreInteractions(jobApplicationRepository, userService);
+        verifyNoMoreInteractions(jobApplicationRepository, jobEntryRepository);
+    }
+
+    @Test
+    void patch_whenJobIdProvided_updatesOwnedJobEntry() {
+        User user = new User();
+        user.setUserId(5L);
+
+        JobEntry originalEntry = new JobEntry();
+        originalEntry.setJobId(1L);
+        JobEntry replacementEntry = new JobEntry();
+        replacementEntry.setJobId(2L);
+
+        JobApplication existing = new JobApplication();
+        existing.setJobEntry(originalEntry);
+
+        when(jobApplicationRepository.findByApplicationIdAndUser_UserId(30L, 5L)).thenReturn(Optional.of(existing));
+        when(jobEntryRepository.findByJobIdAndUser_UserId(2L, 5L)).thenReturn(Optional.of(replacementEntry));
+        when(jobApplicationRepository.save(existing)).thenReturn(existing);
+
+        JobApplication result = jobApplicationService.patch(
+                30L,
+                new UpdateJobApplicationRequest(2L, null, null),
+                user
+        );
+
+        assertEquals(2L, result.getJobEntry().getJobId());
+        verify(jobApplicationRepository).findByApplicationIdAndUser_UserId(30L, 5L);
+        verify(jobEntryRepository).findByJobIdAndUser_UserId(2L, 5L);
+        verify(jobApplicationRepository).save(existing);
+        verifyNoMoreInteractions(jobApplicationRepository, jobEntryRepository);
     }
 
     @Test
     void patch_whenNotOwned_throwsForbiddenException() {
         User user = new User();
         user.setUserId(5L);
+        when(jobApplicationRepository.findByApplicationIdAndUser_UserId(30L, 5L)).thenReturn(Optional.empty());
 
-        UpdateJobApplicationRequest request = mock(UpdateJobApplicationRequest.class);
-        when(jobApplicationRepository.findByApplicationIdAndUserId(30L, 5L)).thenReturn(Optional.empty());
+        assertThrows(ForbiddenException.class,
+                () -> jobApplicationService.patch(30L, new UpdateJobApplicationRequest(null, "Offer", null), user));
 
-        assertThrows(ForbiddenException.class, () -> jobApplicationService.patch(30L, request, user));
-
-        verify(jobApplicationRepository).findByApplicationIdAndUserId(30L, 5L);
-        verifyNoMoreInteractions(jobApplicationRepository, userService);
+        verify(jobApplicationRepository).findByApplicationIdAndUser_UserId(30L, 5L);
+        verifyNoMoreInteractions(jobApplicationRepository, jobEntryRepository);
     }
 
-    // delete(Long, User) -> can throw ForbiddenException -> 2 tests
     @Test
     void delete_whenOwned_deletesById() {
         User user = new User();
@@ -218,26 +285,24 @@ class JobApplicationServiceTests {
 
         JobApplication existing = new JobApplication();
         existing.setApplicationId(40L);
-
-        when(jobApplicationRepository.findByApplicationIdAndUserId(40L, 6L)).thenReturn(Optional.of(existing));
+        when(jobApplicationRepository.findByApplicationIdAndUser_UserId(40L, 6L)).thenReturn(Optional.of(existing));
 
         jobApplicationService.delete(40L, user);
 
-        verify(jobApplicationRepository).findByApplicationIdAndUserId(40L, 6L);
+        verify(jobApplicationRepository).findByApplicationIdAndUser_UserId(40L, 6L);
         verify(jobApplicationRepository).deleteById(40L);
-        verifyNoMoreInteractions(jobApplicationRepository, userService);
+        verifyNoMoreInteractions(jobApplicationRepository, jobEntryRepository);
     }
 
     @Test
     void delete_whenNotOwned_throwsForbiddenException() {
         User user = new User();
         user.setUserId(6L);
-
-        when(jobApplicationRepository.findByApplicationIdAndUserId(40L, 6L)).thenReturn(Optional.empty());
+        when(jobApplicationRepository.findByApplicationIdAndUser_UserId(40L, 6L)).thenReturn(Optional.empty());
 
         assertThrows(ForbiddenException.class, () -> jobApplicationService.delete(40L, user));
 
-        verify(jobApplicationRepository).findByApplicationIdAndUserId(40L, 6L);
-        verifyNoMoreInteractions(jobApplicationRepository, userService);
+        verify(jobApplicationRepository).findByApplicationIdAndUser_UserId(40L, 6L);
+        verifyNoMoreInteractions(jobApplicationRepository, jobEntryRepository);
     }
 }
