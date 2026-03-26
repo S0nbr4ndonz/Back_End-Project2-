@@ -54,7 +54,6 @@ public class AuthController {
     public Map<String, Object> me(@AuthenticationPrincipal OAuth2User user) {
         User dbUser = userService.getOrCreateFromOAuth(user);
         long applicationCount = jobApplicationRepository.countByUser_UserId(dbUser.getUserId());
-<<<<<<< HEAD
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("username", dbUser.getUsername());
         response.put("name", user.getAttribute("name"));
@@ -69,8 +68,6 @@ public class AuthController {
                 .collect(Collectors.toList()));
         response.put("attributes", user.getAttributes());
         return response;
-=======
-
         return Map.of(
                 "userId", dbUser.getUserId(),
                 "username", dbUser.getUsername(),
@@ -86,7 +83,6 @@ public class AuthController {
                         .collect(Collectors.toList()),
                 "attributes", user.getAttributes()
         );
->>>>>>> 64c7059fb9bb29f95889faf5c439a24c8ac207ae
     }
 
     @DeleteMapping("/api/me")
