@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -42,7 +44,7 @@ class CustomOAuth2UserServiceTests {
 
     @Test
     void loadUser_whenNewAdminLogin_createsAdminAndAddsRoleAuthority() {
-        OAuth2UserRequest request = org.mockito.Mockito.mock(OAuth2UserRequest.class);
+        OAuth2UserRequest request = githubRequest();
         OAuth2User oauthUser = new DefaultOAuth2User(
                 Set.of(new SimpleGrantedAuthority("SCOPE_read:user")),
                 Map.of("login", "S0nbr4ndonz", "email", "admin@example.com", "id", 188244044),
@@ -64,7 +66,7 @@ class CustomOAuth2UserServiceTests {
 
     @Test
     void loadUser_whenExistingUserNeedsPromotion_updatesRole() {
-        OAuth2UserRequest request = org.mockito.Mockito.mock(OAuth2UserRequest.class);
+        OAuth2UserRequest request = githubRequest();
         OAuth2User oauthUser = new DefaultOAuth2User(
                 Set.of(new SimpleGrantedAuthority("SCOPE_read:user")),
                 Map.of("login", "S0nbr4ndonz", "email", "admin@example.com", "id", 188244044),
@@ -73,6 +75,9 @@ class CustomOAuth2UserServiceTests {
 
         User existing = new User();
         existing.setRole(Role.USER);
+        existing.setUsername("S0nbr4ndonz");
+        existing.setEmail("admin@example.com");
+        existing.setOauthProvider("github");
 
         customOAuth2UserService.setOAuthUser(oauthUser);
         when(userRepository.findByOauthProviderAndOauthSubject("github", "188244044")).thenReturn(Optional.of(existing));
@@ -89,7 +94,7 @@ class CustomOAuth2UserServiceTests {
 
     @Test
     void loadUser_whenLoginMissing_throwsOAuth2AuthenticationException() {
-        OAuth2UserRequest request = org.mockito.Mockito.mock(OAuth2UserRequest.class);
+        OAuth2UserRequest request = githubRequest();
         OAuth2User oauthUser = new DefaultOAuth2User(
                 Set.of(new SimpleGrantedAuthority("SCOPE_read:user")),
                 Map.of("email", "octo@cat.com", "id", 12345),
@@ -104,7 +109,7 @@ class CustomOAuth2UserServiceTests {
 
     @Test
     void loadUser_whenGitHubIdMissing_throwsOAuth2AuthenticationException() {
-        OAuth2UserRequest request = org.mockito.Mockito.mock(OAuth2UserRequest.class);
+        OAuth2UserRequest request = githubRequest();
         OAuth2User oauthUser = new DefaultOAuth2User(
                 Set.of(new SimpleGrantedAuthority("SCOPE_read:user")),
                 Map.of("login", "octocat", "email", "octo@cat.com"),
@@ -115,6 +120,61 @@ class CustomOAuth2UserServiceTests {
 
         assertThrows(OAuth2AuthenticationException.class, () -> customOAuth2UserService.loadUser(request));
         verifyNoMoreInteractions(userRepository);
+    }
+
+    @Test
+    void loadUser_whenGoogleLogin_createsStandardUserAndUsesGoogleSubject() {
+        OAuth2UserRequest request = googleRequest();
+        OAuth2User oauthUser = new DefaultOAuth2User(
+                Set.of(new SimpleGrantedAuthority("SCOPE_profile")),
+                Map.of("sub", "google-sub-123", "email", "brandon@example.com", "name", "Brandon Cano"),
+                "sub"
+        );
+
+        customOAuth2UserService.setOAuthUser(oauthUser);
+        when(userRepository.findByOauthProviderAndOauthSubject("google", "google-sub-123")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        OAuth2User result = customOAuth2UserService.loadUser(request);
+
+        assertEquals("Brandon Cano", result.getAttribute("name"));
+        assertTrue(result.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_USER")));
+        verify(userRepository).findByOauthProviderAndOauthSubject("google", "google-sub-123");
+        verify(userRepository).save(any(User.class));
+        verifyNoMoreInteractions(userRepository);
+    }
+
+    private OAuth2UserRequest githubRequest() {
+        OAuth2UserRequest request = mock(OAuth2UserRequest.class);
+        ClientRegistration registration = ClientRegistration.withRegistrationId("github")
+                .clientId("github-client-id")
+                .authorizationGrantType(org.springframework.security.oauth2.core.AuthorizationGrantType.AUTHORIZATION_CODE)
+                .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+                .authorizationUri("https://github.com/login/oauth/authorize")
+                .tokenUri("https://github.com/login/oauth/access_token")
+                .userInfoUri("https://api.github.com/user")
+                .userNameAttributeName("login")
+                .clientName("GitHub")
+                .build();
+        when(request.getClientRegistration()).thenReturn(registration);
+        return request;
+    }
+
+    private OAuth2UserRequest googleRequest() {
+        OAuth2UserRequest request = mock(OAuth2UserRequest.class);
+        ClientRegistration registration = ClientRegistration.withRegistrationId("google")
+                .clientId("google-client-id")
+                .authorizationGrantType(org.springframework.security.oauth2.core.AuthorizationGrantType.AUTHORIZATION_CODE)
+                .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+                .scope("openid", "profile", "email")
+                .authorizationUri("https://accounts.google.com/o/oauth2/v2/auth")
+                .tokenUri("https://oauth2.googleapis.com/token")
+                .userInfoUri("https://openidconnect.googleapis.com/v1/userinfo")
+                .userNameAttributeName("sub")
+                .clientName("Google")
+                .build();
+        when(request.getClientRegistration()).thenReturn(registration);
+        return request;
     }
 
     private static final class TestableCustomOAuth2UserService extends CustomOAuth2UserService {
