@@ -87,25 +87,22 @@ public class UserService {
         }
 
         Map<String, Object> attrs = principal.getAttributes();
-
-        if (attrs.get("id") == null) {
-            throw new NotAuthenticatedException("Token expired or invalid");
-        }
-
-        String provider = "github";
-        String subject = attrs.get("id").toString();
-        String username = (String) attrs.get("login");
+        String provider = resolveProvider(attrs);
+        String subject = resolveSubject(provider, attrs);
+        String username = resolveUsername(provider, attrs);
         String email = (String) attrs.get("email");
 
         return userRepository
                 .findByOauthProviderAndOauthSubject(provider, subject)
                 .map(existingUser -> {
-                    Role desiredRole = resolveRole(username);
+                    Role desiredRole = resolveRole(provider, username);
                     if (existingUser.getRole() != desiredRole) {
                         existingUser.setRole(desiredRole);
-                        return userRepository.save(existingUser);
                     }
-                    return existingUser;
+                    existingUser.setUsername(username);
+                    existingUser.setEmail(email);
+                    existingUser.setOauthProvider(provider);
+                    return userRepository.save(existingUser);
                 })
                 .orElseGet(() -> {
                     User u = new User();
@@ -113,13 +110,55 @@ public class UserService {
                     u.setOauthSubject(subject);
                     u.setUsername(username);
                     u.setEmail(email);
-                    u.setRole(resolveRole(username));
+                    u.setRole(resolveRole(provider, username));
                     return userRepository.save(u);
                 });
     }
 
-    private Role resolveRole(String githubLogin) {
-        if (StringUtils.hasText(adminGithubLogin) && adminGithubLogin.equalsIgnoreCase(githubLogin)) {
+    private String resolveProvider(Map<String, Object> attrs) {
+        if (attrs.get("sub") != null) {
+            return "google";
+        }
+        if (attrs.get("id") != null || attrs.get("login") != null) {
+            return "github";
+        }
+        throw new NotAuthenticatedException("Unsupported OAuth provider");
+    }
+
+    private String resolveSubject(String provider, Map<String, Object> attrs) {
+        Object subject = "google".equals(provider) ? attrs.get("sub") : attrs.get("id");
+        if (subject == null) {
+            throw new NotAuthenticatedException("Token expired or invalid");
+        }
+        return subject.toString();
+    }
+
+    private String resolveUsername(String provider, Map<String, Object> attrs) {
+        if ("google".equals(provider)) {
+            String email = (String) attrs.get("email");
+            if (StringUtils.hasText(email)) {
+                return email;
+            }
+
+            String name = (String) attrs.get("name");
+            if (StringUtils.hasText(name)) {
+                return name;
+            }
+
+            throw new NotAuthenticatedException("Google account is missing a usable username");
+        }
+
+        String githubLogin = (String) attrs.get("login");
+        if (!StringUtils.hasText(githubLogin)) {
+            throw new NotAuthenticatedException("GitHub account is missing a login");
+        }
+        return githubLogin;
+    }
+
+    private Role resolveRole(String provider, String username) {
+        if ("github".equals(provider)
+                && StringUtils.hasText(adminGithubLogin)
+                && adminGithubLogin.equalsIgnoreCase(username)) {
             return Role.ADMIN;
         }
         return Role.USER;

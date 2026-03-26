@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -53,6 +54,22 @@ public class AuthController {
     public Map<String, Object> me(@AuthenticationPrincipal OAuth2User user) {
         User dbUser = userService.getOrCreateFromOAuth(user);
         long applicationCount = jobApplicationRepository.countByUser_UserId(dbUser.getUserId());
+<<<<<<< HEAD
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("username", dbUser.getUsername());
+        response.put("name", user.getAttribute("name"));
+        response.put("login", user.getAttribute("login"));
+        response.put("email", user.getAttribute("email"));
+        response.put("oauthProvider", dbUser.getOauthProvider());
+        response.put("role", dbUser.getRole().name());
+        response.put("applicationCount", applicationCount);
+        response.put("authorities", user.getAuthorities().stream()
+                .map(grantedAuthority -> grantedAuthority.getAuthority())
+                .sorted()
+                .collect(Collectors.toList()));
+        response.put("attributes", user.getAttributes());
+        return response;
+=======
 
         return Map.of(
                 "userId", dbUser.getUserId(),
@@ -69,6 +86,7 @@ public class AuthController {
                         .collect(Collectors.toList()),
                 "attributes", user.getAttributes()
         );
+>>>>>>> 64c7059fb9bb29f95889faf5c439a24c8ac207ae
     }
 
     @DeleteMapping("/api/me")
