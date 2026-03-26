@@ -31,12 +31,6 @@ public class AuthController {
     /**
      * Creates a new auth controller with the required collaborators.
      *
-     * @param userService service used to resolve3 or create the current user record
-     * @param jobApplicationRepository repository used to count current user applications
-     */
-    /**
-     * Creates a new auth controller with the required collaborators.
-     *
      * @param userService service used to resolve or create the current user record
      * @param jobApplicationRepository repository used to count current user applications
      */
@@ -68,21 +62,6 @@ public class AuthController {
                 .collect(Collectors.toList()));
         response.put("attributes", user.getAttributes());
         return response;
-        return Map.of(
-                "userId", dbUser.getUserId(),
-                "username", dbUser.getUsername(),
-                "name", user.getAttribute("name"),
-                "login", user.getAttribute("login"),
-                "email", user.getAttribute("email"),
-                "oauthProvider", dbUser.getOauthProvider(),
-                "role", dbUser.getRole().name(),
-                "applicationCount", applicationCount,
-                "authorities", user.getAuthorities().stream()
-                        .map(grantedAuthority -> grantedAuthority.getAuthority())
-                        .sorted()
-                        .collect(Collectors.toList()),
-                "attributes", user.getAttributes()
-        );
     }
 
     @DeleteMapping("/api/me")
