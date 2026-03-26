@@ -48,6 +48,7 @@ public class JobApplicationService {
                 .map( app -> new GetJobApplicationRequest(
                         app.getApplicationId(),
                         app.getJobEntry().getJobId(),
+                        app.getJobEntry().getCompanyName(),
                         app.getJobEntry().getJobTitle(),
                         app.getStatus(),
                         app.getDateApplied(),
@@ -69,6 +70,7 @@ public class JobApplicationService {
         return new GetJobApplicationRequest(
                 application.getApplicationId(),
                 application.getJobEntry().getJobId(),
+                application.getJobEntry().getCompanyName(),
                 application.getJobEntry().getJobTitle(),
                 application.getStatus(),
                 application.getDateApplied(),
