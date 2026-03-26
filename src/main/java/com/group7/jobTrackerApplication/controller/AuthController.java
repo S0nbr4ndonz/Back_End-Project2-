@@ -31,12 +31,6 @@ public class AuthController {
     /**
      * Creates a new auth controller with the required collaborators.
      *
-     * @param userService service used to resolve3 or create the current user record
-     * @param jobApplicationRepository repository used to count current user applications
-     */
-    /**
-     * Creates a new auth controller with the required collaborators.
-     *
      * @param userService service used to resolve or create the current user record
      * @param jobApplicationRepository repository used to count current user applications
      */
@@ -54,7 +48,6 @@ public class AuthController {
     public Map<String, Object> me(@AuthenticationPrincipal OAuth2User user) {
         User dbUser = userService.getOrCreateFromOAuth(user);
         long applicationCount = jobApplicationRepository.countByUser_UserId(dbUser.getUserId());
-<<<<<<< HEAD
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("username", dbUser.getUsername());
         response.put("name", user.getAttribute("name"));
@@ -69,24 +62,6 @@ public class AuthController {
                 .collect(Collectors.toList()));
         response.put("attributes", user.getAttributes());
         return response;
-=======
-
-        return Map.of(
-                "userId", dbUser.getUserId(),
-                "username", dbUser.getUsername(),
-                "name", user.getAttribute("name"),
-                "login", user.getAttribute("login"),
-                "email", user.getAttribute("email"),
-                "oauthProvider", dbUser.getOauthProvider(),
-                "role", dbUser.getRole().name(),
-                "applicationCount", applicationCount,
-                "authorities", user.getAuthorities().stream()
-                        .map(grantedAuthority -> grantedAuthority.getAuthority())
-                        .sorted()
-                        .collect(Collectors.toList()),
-                "attributes", user.getAttributes()
-        );
->>>>>>> 64c7059fb9bb29f95889faf5c439a24c8ac207ae
     }
 
     @DeleteMapping("/api/me")
