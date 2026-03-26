@@ -27,15 +27,18 @@ public class AuthController {
     private final UserService userService;
     private final JobApplicationRepository jobApplicationRepository;
 
-<<<<<<< HEAD
+    /**
+     * Creates a new auth controller with the required collaborators.
+     *
+     * @param userService service used to resolve3 or create the current user record
+     * @param jobApplicationRepository repository used to count current user applications
+     */
     /**
      * Creates a new auth controller with the required collaborators.
      *
      * @param userService service used to resolve or create the current user record
      * @param jobApplicationRepository repository used to count current user applications
      */
-=======
->>>>>>> 081744b7c9ee1e873df3b2b14241d93faf15c39e
     public AuthController(UserService userService, JobApplicationRepository jobApplicationRepository) {
         this.userService = userService;
         this.jobApplicationRepository = jobApplicationRepository;
@@ -52,14 +55,7 @@ public class AuthController {
         long applicationCount = jobApplicationRepository.countByUser_UserId(dbUser.getUserId());
 
         return Map.of(
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
                 "userId", dbUser.getUserId(),
->>>>>>> 081744b7c9ee1e873df3b2b14241d93faf15c39e
-=======
-                "userId", dbUser.getUserId(),
->>>>>>> f968181bd24fe33c6b04182ca4c8dbb544e458bc
                 "username", dbUser.getUsername(),
                 "name", user.getAttribute("name"),
                 "login", user.getAttribute("login"),
@@ -76,14 +72,11 @@ public class AuthController {
     }
 
     @DeleteMapping("/api/me")
-<<<<<<< HEAD
     @Operation(summary = "Delete current user", description = "Deletes the authenticated user's account and associated data.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Current user deleted"),
             @ApiResponse(responseCode = "401", description = "Authentication required")
     })
-=======
->>>>>>> 081744b7c9ee1e873df3b2b14241d93faf15c39e
     public ResponseEntity<Void> deleteCurrentUser(@AuthenticationPrincipal OAuth2User user) {
         User dbUser = userService.getOrCreateFromOAuth(user);
         userService.delete(dbUser.getUserId());

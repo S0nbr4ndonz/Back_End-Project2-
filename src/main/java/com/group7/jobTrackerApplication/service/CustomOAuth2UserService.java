@@ -82,15 +82,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return new DefaultOAuth2User(authorities, oauthUser.getAttributes(), "login");
     }
 
-<<<<<<< HEAD
     /**
      * Loads the raw OAuth user from the provider. Extracted to support tests.
      *
      * @param request OAuth2 user request supplied by Spring Security
-     * @return raw OAuth user from the provider
+     * @return raw OAuth user from the provider 
      */
-=======
->>>>>>> 081744b7c9ee1e873df3b2b14241d93faf15c39e
     protected OAuth2User fetchOAuthUser(OAuth2UserRequest request) {
         return super.loadUser(request);
     }
