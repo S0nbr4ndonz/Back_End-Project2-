@@ -4,6 +4,7 @@ import com.group7.jobTrackerApplication.service.CustomOAuth2UserService;
 import java.util.List;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,11 +17,11 @@ import org.springframework.web.cors.CorsConfiguration;
 @Configuration
 public class SecurityConfig {
 
-    // Change if your frontend runs on a different port
-    private static final String FRONTEND_ORIGIN = "http://localhost:3000";
+    @Value("${app.frontend.origin:http://localhost:3000}")
+    private String frontendOrigin;
 
-    // Where Spring sends the browser after OAuth login completes
-    private static final String FRONTEND_SUCCESS_URL = "http://localhost:3000/oauth-success";
+    @Value("${app.frontend.success-url:http://localhost:3000/oauth-success}")
+    private String frontendSuccessUrl;
 
     @Bean
     SecurityFilterChain springFilterChain(HttpSecurity http, CustomOAuth2UserService customOAuth2UserService){
@@ -31,7 +32,7 @@ public class SecurityConfig {
                 // Required so React can call the API AND include cookies
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration cfg = new CorsConfiguration();
-                    cfg.setAllowedOrigins(List.of(FRONTEND_ORIGIN));
+                    cfg.setAllowedOrigins(List.of(frontendOrigin));
                     cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                     cfg.setAllowedHeaders(List.of("*"));
                     cfg.setAllowCredentials(true);
@@ -58,7 +59,7 @@ public class SecurityConfig {
 
                 // OAuth login (GitHub/Google/etc.)
                 .oauth2Login(oauth -> oauth
-                        .defaultSuccessUrl(FRONTEND_SUCCESS_URL, true)
+                        .defaultSuccessUrl(frontendSuccessUrl, true)
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                 )
 
@@ -68,7 +69,7 @@ public class SecurityConfig {
                 // API logout endpoint React can call
                 .logout(logout -> logout
                         .logoutUrl("/api/logout")
-                        .logoutSuccessUrl(FRONTEND_ORIGIN + "/")
+                        .logoutSuccessUrl(frontendOrigin + "/")
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {

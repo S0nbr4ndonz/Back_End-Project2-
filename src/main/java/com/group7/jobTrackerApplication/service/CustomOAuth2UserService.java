@@ -9,7 +9,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
@@ -34,7 +33,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
-        OAuth2User oauthUser = super.loadUser(request);
+        OAuth2User oauthUser = fetchOAuthUser(request);
 
         String login = (String) oauthUser.getAttribute("login");
         if(login == null){
@@ -71,6 +70,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
 
         return new DefaultOAuth2User(authorities, oauthUser.getAttributes(), "login");
+    }
+
+    protected OAuth2User fetchOAuthUser(OAuth2UserRequest request) {
+        return super.loadUser(request);
     }
 
     private Role resolveRole(String githubLogin) {

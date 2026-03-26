@@ -19,8 +19,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTests {
@@ -32,12 +38,9 @@ class UserServiceTests {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository);
+        userService = new UserService(userRepository, "S0nbr4ndonz");
     }
 
-    // -------------------------
-    // getAllUsers() -> no exception -> 1 test
-    // -------------------------
     @Test
     void getAllUsers_returnsAllUsers() {
         List<User> expected = List.of(new User(), new User());
@@ -50,9 +53,6 @@ class UserServiceTests {
         verifyNoMoreInteractions(userRepository);
     }
 
-    // -------------------------
-    // getUserById() -> can throw -> 2 tests
-    // -------------------------
     @Test
     void getUserById_whenFound_returnsUser() {
         Long userId = 1L;
@@ -77,23 +77,16 @@ class UserServiceTests {
         verifyNoMoreInteractions(userRepository);
     }
 
-    // -------------------------
-    // update() -> can throw -> 2 tests
-    // -------------------------
     @Test
     void update_whenUserExists_updatesRoleAndSaves() {
         Long userId = 5L;
-
         User existing = new User();
         existing.setRole(Role.USER);
 
-        // Note: UpdateUserRoleRequest is a record; this assumes it has a constructor like new UpdateUserRoleRequest(Role.ADMIN)
-        UpdateUserRoleRequest request = new UpdateUserRoleRequest(Role.ADMIN);
-
         when(userRepository.findById(userId)).thenReturn(Optional.of(existing));
-        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        User result = userService.update(userId, request);
+        User result = userService.update(userId, new UpdateUserRoleRequest(Role.ADMIN));
 
         assertEquals(Role.ADMIN, result.getRole());
         verify(userRepository).findById(userId);
@@ -104,19 +97,14 @@ class UserServiceTests {
     @Test
     void update_whenUserMissing_throwsResourceNotFoundException() {
         Long userId = 404L;
-        UpdateUserRoleRequest request = new UpdateUserRoleRequest(Role.ADMIN);
-
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> userService.update(userId, request));
+        assertThrows(ResourceNotFoundException.class, () -> userService.update(userId, new UpdateUserRoleRequest(Role.ADMIN)));
 
         verify(userRepository).findById(userId);
         verifyNoMoreInteractions(userRepository);
     }
 
-    // -------------------------
-    // delete() -> can throw -> 2 tests
-    // -------------------------
     @Test
     void delete_whenUserExists_deletesAndReturnsUser() {
         Long userId = 7L;
@@ -142,25 +130,33 @@ class UserServiceTests {
         verifyNoMoreInteractions(userRepository);
     }
 
-    // -------------------------
-    // getOrCreateFromOAuth() -> can throw -> 2 tests
-    // -------------------------
     @Test
-    void getOrCreateFromOAuth_whenNotFound_createsUserWithDefaultsAndSaves() {
-        OAuth2User principal = mock(OAuth2User.class);
+    void getOrCreateFromOAuth_whenPrincipalNull_throwsNotAuthenticatedException() {
+        assertThrows(NotAuthenticatedException.class, () -> userService.getOrCreateFromOAuth(null));
+        verifyNoInteractions(userRepository);
+    }
 
-        Map<String, Object> attrs = Map.of(
+    @Test
+    void getOrCreateFromOAuth_whenTokenMissingId_throwsNotAuthenticatedException() {
+        OAuth2User principal = org.mockito.Mockito.mock(OAuth2User.class);
+        when(principal.getAttributes()).thenReturn(Map.of("login", "octocat"));
+
+        assertThrows(NotAuthenticatedException.class, () -> userService.getOrCreateFromOAuth(principal));
+
+        verifyNoInteractions(userRepository);
+    }
+
+    @Test
+    void getOrCreateFromOAuth_whenUserMissing_createsStandardUser() {
+        OAuth2User principal = org.mockito.Mockito.mock(OAuth2User.class);
+        when(principal.getAttributes()).thenReturn(Map.of(
                 "id", 12345L,
                 "login", "octocat",
                 "email", "octocat@github.com"
-        );
-        when(principal.getAttributes()).thenReturn(attrs);
+        ));
 
         when(userRepository.findByOauthProviderAndOauthSubject("github", "12345"))
                 .thenReturn(Optional.empty());
-
-        // Capture the user being saved so we can assert fields set by service
-        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
 
         User saved = new User();
         when(userRepository.save(any(User.class))).thenReturn(saved);
@@ -169,6 +165,7 @@ class UserServiceTests {
 
         assertSame(saved, result);
 
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).findByOauthProviderAndOauthSubject("github", "12345");
         verify(userRepository).save(userCaptor.capture());
 
@@ -178,13 +175,53 @@ class UserServiceTests {
         assertEquals("octocat", toSave.getUsername());
         assertEquals("octocat@github.com", toSave.getEmail());
         assertEquals(Role.USER, toSave.getRole());
-
         verifyNoMoreInteractions(userRepository);
     }
 
     @Test
-    void getOrCreateFromOAuth_whenPrincipalNull_throwsNotAuthenticatedException() {
-        assertThrows(NotAuthenticatedException.class, () -> userService.getOrCreateFromOAuth(null));
-        verifyNoInteractions(userRepository);
+    void getOrCreateFromOAuth_whenGitHubLoginMatchesAdmin_promotesToAdmin() {
+        OAuth2User principal = org.mockito.Mockito.mock(OAuth2User.class);
+        when(principal.getAttributes()).thenReturn(Map.of(
+                "id", 188244044L,
+                "login", "S0nbr4ndonz",
+                "email", "admin@example.com"
+        ));
+
+        when(userRepository.findByOauthProviderAndOauthSubject("github", "188244044"))
+                .thenReturn(Optional.empty());
+
+        User saved = new User();
+        when(userRepository.save(any(User.class))).thenReturn(saved);
+
+        userService.getOrCreateFromOAuth(principal);
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+        assertEquals(Role.ADMIN, userCaptor.getValue().getRole());
+    }
+
+    @Test
+    void getOrCreateFromOAuth_whenExistingUserNeedsRoleChange_updatesAndSaves() {
+        OAuth2User principal = org.mockito.Mockito.mock(OAuth2User.class);
+        when(principal.getAttributes()).thenReturn(Map.of(
+                "id", 188244044L,
+                "login", "S0nbr4ndonz",
+                "email", "admin@example.com"
+        ));
+
+        User existing = new User();
+        existing.setRole(Role.USER);
+
+        when(userRepository.findByOauthProviderAndOauthSubject("github", "188244044"))
+                .thenReturn(Optional.of(existing));
+        when(userRepository.save(existing)).thenReturn(existing);
+
+        User result = userService.getOrCreateFromOAuth(principal);
+
+        assertSame(existing, result);
+        assertEquals(Role.ADMIN, existing.getRole());
+        verify(userRepository).findByOauthProviderAndOauthSubject("github", "188244044");
+        verify(userRepository).save(existing);
+        verifyNoMoreInteractions(userRepository);
     }
 }
