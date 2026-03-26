@@ -1,0 +1,542 @@
+{
+  "info": {
+    "_postman_id": "d6b7858a-2d4e-4cb3-aaba-4d4a6f51e001",
+    "name": "Job Application Tracker API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for the CST-438 Job Application Tracker backend. Authenticated endpoints require an active OAuth2 session cookie."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "Home",
+      "item": [
+        {
+          "name": "Public Home",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                ""
+              ]
+            },
+            "description": "Smoke-test endpoint."
+          }
+        },
+        {
+          "name": "Secured Home",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/secured",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "secured"
+              ]
+            },
+            "description": "Requires authentication."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "me"
+              ]
+            },
+            "description": "Returns the current authenticated user profile and application count."
+          }
+        },
+        {
+          "name": "Delete Current User",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "me"
+              ]
+            },
+            "description": "Deletes the current authenticated user's account."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "logout"
+              ]
+            },
+            "description": "Ends the current session."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Job Entries",
+      "item": [
+        {
+          "name": "List Job Entries",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/job-entries",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-entries"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Job Entry",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/job-entries/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-entries",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Job Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyName\": \"LinkedIn\",\n  \"jobTitle\": \"Software Engineer Intern\",\n  \"salaryText\": \"$45/hr\",\n  \"postingURL\": \"https://example.com/jobs/linkedin-se-intern\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/job-entries",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-entries"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Replace Job Entry",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyName\": \"LinkedIn\",\n  \"jobTitle\": \"Backend Engineer Intern\",\n  \"salaryText\": \"$47/hr\",\n  \"postingURL\": \"https://example.com/jobs/linkedin-backend-intern\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/job-entries/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-entries",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Patch Job Entry",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salaryText\": \"$50/hr\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/job-entries/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-entries",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Job Entry",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/job-entries/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-entries",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Job Applications",
+      "item": [
+        {
+          "name": "List Job Applications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/job-applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-applications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Job Application",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/job-applications/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-applications",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Job Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobId\": 1,\n  \"status\": \"APPLIED\",\n  \"dateApplied\": \"2026-03-25\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/job-applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-applications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Replace Job Application",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobId\": 1,\n  \"status\": \"INTERVIEW\",\n  \"dateApplied\": \"2026-03-25\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/job-applications/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-applications",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Patch Job Application",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"OFFER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/job-applications/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-applications",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Job Application",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/job-applications/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-applications",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Application Notes",
+      "item": [
+        {
+          "name": "Get Application Note",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/job-applications/1/note/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-applications",
+                "1",
+                "note",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Application Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Follow up with recruiter next week.\",\n  \"lastEdited\": \"2026-03-25T10:00:00\",\n  \"jobApplication\": {\n    \"applicationId\": 1\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/job-applications/1/note",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-applications",
+                "1",
+                "note"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Patch Application Note",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Updated note after recruiter call.\",\n  \"application\": {\n    \"applicationId\": 1\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/job-applications/1/note/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-applications",
+                "1",
+                "note",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Application Note",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/job-applications/1/note/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "job-applications",
+                "1",
+                "note",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Users",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ]
+            },
+            "description": "Requires an authenticated admin session."
+          }
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/admin/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Patch User Role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "2"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/admin/2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "2"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -6,7 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
-
+/**
+ * Repository for querying and persisting application note records.
+ */
 public interface ApplicationNoteRepository extends JpaRepository<ApplicationNote, Long>{
 
     Optional<List<ApplicationNote>> findByApplication_ApplicationId(Long applicationId);

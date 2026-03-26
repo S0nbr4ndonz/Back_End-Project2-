@@ -3,6 +3,9 @@ package com.group7.jobTrackerApplication.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * JPA entity representing a note attached to a job application.
+ */
 @Entity
 @Table(name = "application_notes")
 public class ApplicationNote {

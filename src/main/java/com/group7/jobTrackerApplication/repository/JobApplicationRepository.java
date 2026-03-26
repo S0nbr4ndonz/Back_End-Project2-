@@ -5,6 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository for querying and persisting job application records.
+ */
 public interface JobApplicationRepository extends JpaRepository<JobApplication, Long> {
 
     Optional<List<JobApplication>> findAllByUser_UserId(Long userUserId);

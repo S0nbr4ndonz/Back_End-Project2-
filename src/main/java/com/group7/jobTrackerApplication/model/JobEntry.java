@@ -2,6 +2,9 @@ package com.group7.jobTrackerApplication.model;
 
 import jakarta.persistence.*;
 
+/**
+ * JPA entity representing a tracked job listing saved by a user.
+ */
 @Entity
 @Table(name = "job_entries")
 public class JobEntry {

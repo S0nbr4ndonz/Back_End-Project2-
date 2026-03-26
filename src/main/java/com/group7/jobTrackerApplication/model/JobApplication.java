@@ -3,6 +3,9 @@ package com.group7.jobTrackerApplication.model;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
+/**
+ * JPA entity representing a user's application to a saved job entry.
+ */
 @Entity
 @Table(name = "job_applications")
 public class JobApplication {

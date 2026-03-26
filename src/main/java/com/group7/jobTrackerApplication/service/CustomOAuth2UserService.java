@@ -17,6 +17,9 @@ import org.springframework.util.StringUtils;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Customizes GitHub OAuth2 login by provisioning local users and assigning role authorities.
+ */
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
@@ -31,6 +34,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         this.adminGithubLogin = adminGithubLogin;
     }
 
+    /**
+     * Loads the OAuth user from GitHub, maps it to a local user record, and adds an application role authority.
+     *
+     * @param request OAuth2 user request supplied by Spring Security
+     * @return OAuth user enriched with local role authority
+     * @throws OAuth2AuthenticationException if required GitHub attributes are missing
+     */
     @Override
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
         OAuth2User oauthUser = fetchOAuthUser(request);
@@ -72,6 +82,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return new DefaultOAuth2User(authorities, oauthUser.getAttributes(), "login");
     }
 
+<<<<<<< HEAD
+    /**
+     * Loads the raw OAuth user from the provider. Extracted to support tests.
+     *
+     * @param request OAuth2 user request supplied by Spring Security
+     * @return raw OAuth user from the provider
+     */
+=======
+>>>>>>> 081744b7c9ee1e873df3b2b14241d93faf15c39e
     protected OAuth2User fetchOAuthUser(OAuth2UserRequest request) {
         return super.loadUser(request);
     }

@@ -14,6 +14,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 
+/**
+ * Configures Spring Security, OAuth login flow, CORS, logout, and API error responses.
+ */
 @Configuration
 public class SecurityConfig {
 
@@ -23,6 +26,13 @@ public class SecurityConfig {
     @Value("${app.frontend.success-url:http://localhost:3000/oauth-success}")
     private String frontendSuccessUrl;
 
+    /**
+     * Builds the application's main security filter chain.
+     *
+     * @param http Spring Security HTTP configuration builder
+     * @param customOAuth2UserService custom OAuth2 user service used after provider login
+     * @return configured security filter chain
+     */
     @Bean
     SecurityFilterChain springFilterChain(HttpSecurity http, CustomOAuth2UserService customOAuth2UserService){
         http

@@ -6,6 +6,9 @@ import com.group7.jobTrackerApplication.model.Role;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * JPA entity representing an authenticated application user.
+ */
 @Entity
 @Table(name = "users")
 public class User {
